@@ -15,7 +15,6 @@ export function useDashboardData() {
     const [links, setLinks] = useState([]);
     const [collapsedCats, setCollapsedCats] = useState({});
     const [isLoaded, setIsLoaded] = useState(false);
-    const hasBootstrappedRef = useRef(false);
 
     // Auth State
     const [user, setUser] = useState(null);
@@ -131,31 +130,6 @@ export function useDashboardData() {
     }, []);
 
     useEffect(() => {
-        const hydrateFromSessionCache = () => {
-            if (typeof window === 'undefined') return false;
-            try {
-                const raw = sessionStorage.getItem(SESSION_CACHE_KEY);
-                if (!raw) return false;
-                const parsed = JSON.parse(raw);
-                const cachedCats = Array.isArray(parsed?.categories) ? withPinnedCategories(parsed.categories) : [];
-                const cachedLinks = Array.isArray(parsed?.links) ? parsed.links : [];
-                const cachedCollapsed = parsed?.collapsedCats && typeof parsed.collapsedCats === 'object' ? parsed.collapsedCats : {};
-                if (cachedCats.length === 0 && cachedLinks.length === 0) return false;
-                setCategories(cachedCats);
-                setLinks(cachedLinks);
-                setCollapsedCats(cachedCollapsed);
-                setIsLoaded(true);
-                return true;
-            } catch {
-                return false;
-            }
-        };
-
-        if (!hasBootstrappedRef.current) {
-            setIsLoaded(false);
-            hydrateFromSessionCache();
-        }
-
         if (!supabase) {
             // Environment keys are missing, gracefully fallback to local only and finish loading.
             const bootstrapLocal = async () => {
@@ -174,7 +148,6 @@ export function useDashboardData() {
                 }
 
                 setIsLoaded(true);
-                hasBootstrappedRef.current = true;
             };
 
             bootstrapLocal();
@@ -233,7 +206,6 @@ export function useDashboardData() {
                 console.error("Cloud fetch failed:", e);
             } finally {
                 setIsLoaded(true);
-                hasBootstrappedRef.current = true;
             }
         };
 
@@ -256,7 +228,6 @@ export function useDashboardData() {
                 }
 
                 setIsLoaded(true);
-                hasBootstrappedRef.current = true;
             };
 
             bootstrapLocal();
